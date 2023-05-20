@@ -1,4 +1,4 @@
-use std::{io, default};
+use std::{default, io};
 
 use serde::{Deserialize, Serialize};
 
@@ -13,7 +13,7 @@ const OPTIONS: [&str; 4] = [
 #[derive(Default)]
 pub struct Manifest<'a> {
     path: Option<&'a std::path::Path>,
-    file : Option<std::fs::File>,
+    file: Option<std::fs::File>,
     manifest_file: Option<ManifestFile>,
 }
 
@@ -21,7 +21,7 @@ impl<'a> Manifest<'a> {
     pub fn open(path: &'a str) -> Self {
         let path = std::path::Path::new(path);
         let file = std::fs::File::open(path);
-        let manifest = Self{
+        let manifest = Self {
             path: Some(path),
             ..Self::default()
         };
