@@ -1,20 +1,30 @@
-use std::io;
+use std::{io, default};
 
 use serde::{Deserialize, Serialize};
 
 const VERSION: Version = Version(0, 0, 1);
-
+const OPTIONS: [&str; 4] = [
+    "1. List previous entries",
+    "2. Insert new entry",
+    "3. Change location of manifest file",
+    "4. Create new manifest",
+];
 
 #[derive(Default)]
 pub struct Manifest<'a> {
-    path: Option<(&'a std::path::Path, std::fs::File)>,
+    path: Option<&'a std::path::Path>,
+    file : Option<std::fs::File>,
     manifest_file: Option<ManifestFile>,
 }
 
-impl <'a> Manifest<'a>{
-    pub fn open(path: &str) -> Self{
+impl<'a> Manifest<'a> {
+    pub fn open(path: &'a str) -> Self {
         let path = std::path::Path::new(path);
         let file = std::fs::File::open(path);
+        let manifest = Self{
+            path: Some(path),
+            ..Self::default()
+        };
         todo!()
     }
 }
@@ -44,7 +54,7 @@ struct Date(u32, u32, u32);
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct ManifestEntryFile {
     location: String,
-    date: Date, 
+    date: Date,
     power_meter_state: PowerMeterEntry,
 }
 
@@ -60,21 +70,14 @@ struct PowerMeterState {
     code_104: f64,
 }
 
-
-
-const OPTIONS: [&str; 4] = [
-    "1. List previous entries",
-    "2. Insert new entry",
-    "3. Change location of manifest file",
-    "4. Create new manifest",
-];
-
 pub fn application(std_in: &io::Stdin, input: &mut String) {
     print_version();
     print_intro();
     print_options();
     loop {
-        std_in.read_line(input).expect("Error while reading standard input.");
+        std_in
+            .read_line(input)
+            .expect("Error while reading standard input.");
         let parsed_input = input.trim().parse::<u8>();
         match parsed_input {
             Ok(num) => {
