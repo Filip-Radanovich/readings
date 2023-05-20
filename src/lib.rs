@@ -1,4 +1,5 @@
-use std::{default, io};
+use std::default;
+use std::io::{self, Error};
 
 use serde::{Deserialize, Serialize};
 
@@ -18,14 +19,14 @@ pub struct Manifest<'a> {
 }
 
 impl<'a> Manifest<'a> {
-    pub fn open(path: &'a str) -> Self {
+    pub fn open(path: &'a str) -> Result<Self, Error>  {
         let path = std::path::Path::new(path);
-        let file = std::fs::File::open(path);
+        let file = std::fs::File::open(path)?;
         let manifest = Self {
             path: Some(path),
-            ..Self::default()
+            file: Some(file),
+            manifest_file: todo!()
         };
-        todo!()
     }
 }
 
@@ -35,7 +36,7 @@ mod tests {
 
     #[test]
     fn manifest_tdd() {
-        Manifest::open("./manifest.venue");
+        Manifest::open("./test_files/manifest.venue").unwrap();
     }
 }
 
