@@ -3,7 +3,9 @@ use std::io::{self, Error};
 
 use serde::{Deserialize, Serialize};
 
-const VERSION: Version = Version(0, 0, 1);
+pub mod built_info {
+    include!(concat!(env!("OUT_DIR"), "/built.rs"));
+}
 const OPTIONS: [&str; 4] = [
     "1. List previous entries",
     "2. Insert new entry",
@@ -33,10 +35,16 @@ impl<'a> Manifest<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
+    use std::path::PathBuf;
     #[test]
     fn manifest_tdd() {
-        Manifest::open("./test_files/manifest.venue").unwrap();
+        let mut file_name = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        file_name.push("/test_files/manifest.venue");
+        let file_name = file_name.to_str();
+        match file_name {
+            Some(name) => {Manifest::open(name).unwrap();},
+            None => panic!("File path coud not be read.")
+        }
     }
 }
 
@@ -75,6 +83,7 @@ pub fn application(std_in: &io::Stdin, input: &mut String) {
     print_version();
     print_intro();
     print_options();
+
     loop {
         std_in
             .read_line(input)
@@ -97,11 +106,11 @@ pub fn application(std_in: &io::Stdin, input: &mut String) {
 }
 
 pub fn print_version() {
-    println!("Version {}.{}.{}", VERSION.0, VERSION.1, VERSION.2);
+    println!("Version {}", built_info::PKG_VERSION);
 }
 
 pub fn print_intro() {
-    println!("Application for registering power meter readings.");
+    println!("{}", built_info::PKG_DESCRIPTION);
     println!("For help press h or ?");
 }
 
