@@ -1,5 +1,6 @@
 use std::default;
-use std::io::{self, Error};
+use std::fs::File;
+use std::io::{self};
 
 use serde::{Deserialize, Serialize};
 
@@ -23,12 +24,20 @@ pub struct Manifest<'a> {
 impl<'a> Manifest<'a> {
     pub fn open(path: &'a str) -> Result<Self, Error>  {
         let path = std::path::Path::new(path);
-        let file = std::fs::File::open(path)?;
-        let manifest = Self {
+        let file = match std::fs::File::open(path){
+            Ok(file) => file,
+            Err(e) => {
+                match e {
+                    _ => return Err(Error::FileNotFound)
+                }
+            }
+        };
+        let manifest = ManifestFile::open(&file)?;
+        Ok(Self {
             path: Some(path),
             file: Some(file),
-            manifest_file: todo!()
-        };
+            manifest_file: Some(manifest)
+        })
     }
 }
 
@@ -52,6 +61,18 @@ mod tests {
 struct ManifestFile {
     version: Version,
     entries: Vec<ManifestEntryFile>,
+}
+
+impl ManifestFile{
+    pub fn open(file: &File) -> Result<ManifestFile, Error> {
+        todo!()
+    }
+}
+#[derive(Debug, Serialize, Deserialize)]
+pub enum Error {
+    FileNotFound,
+    DataInvalid,
+
 }
 #[derive(Default, Debug, Serialize, Deserialize)]
 struct Version(u32, u32, u32);
