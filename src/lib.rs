@@ -90,7 +90,7 @@ pub struct ManifestEntryFile {
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 struct PowerMeterEntry {
-    start: Option<PowerMeterState>,
+    start: PowerMeterState,
     end: Option<PowerMeterState>,
 }
 
