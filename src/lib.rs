@@ -24,7 +24,7 @@ pub struct Manifest<'a> {
 impl<'a> Manifest<'a> {
     pub fn open(path: &'a str) -> Result<Self, Error>  {
         let path = std::path::Path::new(path);
-        let file = match std::fs::File::open(path){
+        let file = match std::fs::File::options().write(false).read(true).open(path){
             Ok(file) => file,
             Err(e) => {
                 match e {
@@ -32,7 +32,11 @@ impl<'a> Manifest<'a> {
                 }
             }
         };
-        let manifest = ManifestFile::open(&file)?;
+        let manifest = {
+            let manifest = ManifestFile::open(&file);
+            match
+        };
+        
         Ok(Self {
             path: Some(path),
             file: Some(file),
