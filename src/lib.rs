@@ -14,10 +14,10 @@ const OPTIONS: [&str; 4] = [
     "4. Create new manifest",
 ];
 
-#[derive(Default)]
+
 pub struct Manifest<'a> {
-    path: Option<&'a std::path::Path>,
-    file: Option<std::fs::File>,
+    path: &'a std::path::Path,
+    file: std::fs::File,
     manifest_file: Option<ManifestFile>,
 }
 
@@ -26,20 +26,17 @@ impl<'a> Manifest<'a> {
         let path = std::path::Path::new(path);
         let file = match std::fs::File::options().write(false).read(true).open(path){
             Ok(file) => file,
-            Err(e) => {
-                match e {
-                    _ => return Err(Error::FileNotFound)
+            Err(error) => {
+                match error {
+                    _ => return Err(Error::File { path, error })
                 }
             }
         };
-        let manifest = {
-            let manifest = ManifestFile::open(&file);
-            match
-        };
+        let (file, manifest) = ManifestFile::open(file)?;
         
         Ok(Self {
-            path: Some(path),
-            file: Some(file),
+            path,
+            file,
             manifest_file: Some(manifest)
         })
     }
@@ -60,6 +57,12 @@ mod tests {
         }
     }
 }
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ManifestError{
+    DataCorrupted,
+    NotValidManifest,
+
+}
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 struct ManifestFile {
@@ -68,14 +71,21 @@ struct ManifestFile {
 }
 
 impl ManifestFile{
-    pub fn open(file: &File) -> Result<ManifestFile, Error> {
+    pub fn open<'a>(file: File) -> Result<(File, ManifestFile), Error<'a>> {
         todo!()
     }
 }
-#[derive(Debug, Serialize, Deserialize)]
-pub enum Error {
-    FileNotFound,
-    DataInvalid,
+#[derive(Debug)]
+pub enum Error<'a> {
+    File{
+        path: &'a std::path::Path,
+        error: std::io::Error,
+    },
+    Manifest{
+        path: &'a std::path::Path,
+        file: std::fs::File,
+        error: ManifestError
+    },
 
 }
 #[derive(Default, Debug, Serialize, Deserialize)]
