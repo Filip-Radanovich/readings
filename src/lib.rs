@@ -14,7 +14,6 @@ const OPTIONS: [&str; 4] = [
     "4. Create new manifest",
 ];
 
-
 pub struct Manifest<'a> {
     path: &'a std::path::Path,
     file: std::fs::File,
@@ -22,22 +21,20 @@ pub struct Manifest<'a> {
 }
 
 impl<'a> Manifest<'a> {
-    pub fn open(path: &'a str) -> Result<Self, Error>  {
+    pub fn open(path: &'a str) -> Result<Self, Error> {
         let path = std::path::Path::new(path);
-        let file = match std::fs::File::options().write(false).read(true).open(path){
+        let file = match std::fs::File::options().write(false).read(true).open(path) {
             Ok(file) => file,
-            Err(error) => {
-                match error {
-                    _ => return Err(Error::File { path, error })
-                }
-            }
+            Err(error) => match error {
+                _ => return Err(Error::File { path, error }),
+            },
         };
         let (file, manifest) = ManifestFile::open(file)?;
-        
+
         Ok(Self {
             path,
             file,
-            manifest_file: Some(manifest)
+            manifest_file: Some(manifest),
         })
     }
 }
@@ -52,55 +49,71 @@ mod tests {
         file_name.push("/test_files/manifest.venue");
         let file_name = file_name.to_str();
         match file_name {
-            Some(name) => {Manifest::open(name).unwrap();},
-            None => panic!("File path coud not be read.")
+            Some(name) => {
+                Manifest::open(name).unwrap();
+            }
+            None => panic!("File path coud not be read."),
         }
     }
 }
 #[derive(Debug, Serialize, Deserialize)]
-pub enum ManifestError{
-    DataCorrupted,
+pub enum ManifestError {
+    DataCorrupted(),
     NotValidManifest,
-
 }
-
+// listovi su podaci, linije relacije
 #[derive(Default, Debug, Serialize, Deserialize)]
 struct ManifestFile {
     version: Version,
-    entries: Vec<ManifestEntryFile>,
+    entries: Entries,
 }
 
-impl ManifestFile{
+impl ManifestFile {
     pub fn open<'a>(file: File) -> Result<(File, ManifestFile), Error<'a>> {
         todo!()
     }
 }
-#[derive(Debug)]
-pub enum Error<'a> {
-    File{
-        path: &'a std::path::Path,
-        error: std::io::Error,
-    },
-    Manifest{
-        path: &'a std::path::Path,
-        file: std::fs::File,
-        error: ManifestError
-    },
+
+#[derive(Default, Debug, Serialize, Deserialize)]
+pub struct Entries {
+    power_meters: Option<Vec<PowerMeterInfo>>
 
 }
-#[derive(Default, Debug, Serialize, Deserialize)]
-struct Version(u32, u32, u32);
-
-/// YEAR-MONTH-DAY
-#[derive(Default, Debug, Serialize, Deserialize)]
-struct Date(u32, u32, u32);
 
 #[derive(Default, Debug, Serialize, Deserialize)]
-pub struct ManifestEntryFile {
-    location: String,
-    date: Date,
+pub struct ReadingEntry {
+    power_meter_info: Option<PowerMeterInfo>,
     power_meter_state: PowerMeterEntry,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum PowerMeterInfo {
+    Fixed(Address, PowerMeterNumber),
+    Portable(Option<Description>, PowerMeterNumber)
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Address {
+    location: (String, Option<u32>)
+}
+
+impl Address {
+    /// Just checks that name of location isn't too big.
+    /// Its currently set to lenght of hundred but could be bigger in the future
+    pub fn validate<'a>(location: (String, Option<u32>)) -> Result<Address, Error<'a>> {
+        match location.0.len() {
+            1..=100 => Ok(Address { location }),
+            0 => Err(Error::AddressTooShort),
+            _ => Err(Error::AdrressTooLong)
+        }
+    }
+
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PowerMeterNumber;
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Description;
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 struct PowerMeterEntry {
@@ -113,6 +126,27 @@ struct PowerMeterState {
     code_108: f64,
     code_104: f64,
 }
+
+#[derive(Debug)]
+pub enum Error<'a> {
+    File {
+        path: &'a std::path::Path,
+        error: std::io::Error,
+    },
+    Manifest {
+        path: &'a std::path::Path,
+        file: std::fs::File,
+        error: ManifestError,
+    },
+    AddressTooShort,
+    AdrressTooLong
+}
+#[derive(Default, Debug, Serialize, Deserialize)]
+struct Version(u32, u32, u32);
+
+/// YEAR-MONTH-DAY
+#[derive(Default, Debug, Serialize, Deserialize)]
+struct Date(u32, u32, u32);
 
 pub fn application(std_in: &io::Stdin, input: &mut String) {
     print_version();
