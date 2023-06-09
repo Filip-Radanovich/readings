@@ -1,3 +1,5 @@
+mod persistency;
+use persistency::*;
 use std::default;
 use std::fs::File;
 use std::io::{self};
@@ -14,70 +16,6 @@ const OPTIONS: [&str; 4] = [
     "4. Create new manifest",
 ];
 
-pub struct Manifest<'a> {
-    path: &'a std::path::Path,
-    file: std::fs::File,
-    manifest_file: Option<ManifestFile>,
-}
-
-impl<'a> Manifest<'a> {
-    pub fn open(path: &'a str) -> Result<Self, Error> {
-        let path = std::path::Path::new(path);
-        let file = match std::fs::File::options().write(false).read(true).open(path) {
-            Ok(file) => file,
-            Err(error) => match error {
-                _ => return Err(Error::File { path, error }),
-            },
-        };
-        let (file, manifest) = ManifestFile::open(file)?;
-
-        Ok(Self {
-            path,
-            file,
-            manifest_file: Some(manifest),
-        })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::path::PathBuf;
-    #[test]
-    fn manifest_tdd() {
-        let mut file_name = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-        file_name.push("/test_files/manifest.venue");
-        let file_name = file_name.to_str();
-        match file_name {
-            Some(name) => {
-                Manifest::open(name).unwrap();
-            }
-            None => panic!("File path coud not be read."),
-        }
-    }
-}
-#[derive(Debug, Serialize, Deserialize)]
-pub enum ManifestError {
-    DataCorrupted(),
-    NotValidManifest,
-}
-// listovi su podaci, linije relacije
-#[derive(Default, Debug, Serialize, Deserialize)]
-struct ManifestFile {
-    version: Version,
-    entries: Entries,
-}
-
-impl ManifestFile {
-    pub fn open<'a>(file: File) -> Result<(File, ManifestFile), Error<'a>> {
-        todo!()
-    }
-}
-
-#[derive(Default, Debug, Serialize, Deserialize)]
-pub struct Entries {
-    power_meters: Option<Vec<PowerMeterInfo>>,
-}
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct ReadingEntry {
@@ -89,6 +27,18 @@ pub struct ReadingEntry {
 pub enum PowerMeterInfo {
     Fixed(Address, PowerMeterNumber),
     Portable(Option<Description>, PowerMeterNumber),
+}
+
+#[derive(Default, Debug, Serialize, Deserialize)]
+
+struct PowerMeterEntry {
+    start: PowerMeterState,
+    end: Option<PowerMeterState>,
+}
+#[derive(Default, Debug, Serialize, Deserialize)]
+struct PowerMeterState {
+    code_108: f64,
+    code_104: f64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -113,17 +63,6 @@ pub struct PowerMeterNumber;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Description;
 
-#[derive(Default, Debug, Serialize, Deserialize)]
-struct PowerMeterEntry {
-    start: PowerMeterState,
-    end: Option<PowerMeterState>,
-}
-
-#[derive(Default, Debug, Serialize, Deserialize)]
-struct PowerMeterState {
-    code_108: f64,
-    code_104: f64,
-}
 
 #[derive(Debug)]
 pub enum Error<'a> {
@@ -145,6 +84,8 @@ struct Version(u32, u32, u32);
 /// YEAR-MONTH-DAY
 #[derive(Default, Debug, Serialize, Deserialize)]
 struct Date(u32, u32, u32);
+
+
 
 pub fn application(
     std_in: &io::Stdin,
