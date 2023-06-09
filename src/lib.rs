@@ -76,8 +76,7 @@ impl ManifestFile {
 
 #[derive(Default, Debug, Serialize, Deserialize)]
 pub struct Entries {
-    power_meters: Option<Vec<PowerMeterInfo>>
-
+    power_meters: Option<Vec<PowerMeterInfo>>,
 }
 
 #[derive(Default, Debug, Serialize, Deserialize)]
@@ -89,25 +88,24 @@ pub struct ReadingEntry {
 #[derive(Debug, Serialize, Deserialize)]
 pub enum PowerMeterInfo {
     Fixed(Address, PowerMeterNumber),
-    Portable(Option<Description>, PowerMeterNumber)
+    Portable(Option<Description>, PowerMeterNumber),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Address {
-    location: (String, Option<u32>)
+    location: (String, Option<u32>),
 }
 
 impl Address {
     /// Just checks that name of location isn't too big.
-    /// Its currently set to lenght of hundred but could be bigger in the future
+    /// Its currently set to lenght of hundred but could be bigger in the future.
     pub fn validate<'a>(location: (String, Option<u32>)) -> Result<Address, Error<'a>> {
         match location.0.len() {
             1..=100 => Ok(Address { location }),
             0 => Err(Error::AddressTooShort),
-            _ => Err(Error::AdrressTooLong)
+            _ => Err(Error::AdrressTooLong),
         }
     }
-
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -139,7 +137,7 @@ pub enum Error<'a> {
         error: ManifestError,
     },
     AddressTooShort,
-    AdrressTooLong
+    AdrressTooLong,
 }
 #[derive(Default, Debug, Serialize, Deserialize)]
 struct Version(u32, u32, u32);
@@ -148,7 +146,10 @@ struct Version(u32, u32, u32);
 #[derive(Default, Debug, Serialize, Deserialize)]
 struct Date(u32, u32, u32);
 
-pub fn application(std_in: &io::Stdin, input: &mut String) {
+pub fn application(
+    std_in: &io::Stdin,
+    input: &mut String,
+) {
     print_version();
     print_intro();
     print_options();
