@@ -1,4 +1,5 @@
 mod persistency;
+mod power_meter;
 use persistency::*;
 use std::default;
 use std::fs::File;
@@ -15,31 +16,6 @@ const OPTIONS: [&str; 4] = [
     "3. Change location of manifest file",
     "4. Create new manifest",
 ];
-
-
-#[derive(Default, Debug, Serialize, Deserialize)]
-pub struct ReadingEntry {
-    power_meter_info: Option<PowerMeterInfo>,
-    power_meter_state: PowerMeterEntry,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub enum PowerMeterInfo {
-    Fixed(Address, PowerMeterNumber),
-    Portable(Option<Description>, PowerMeterNumber),
-}
-
-#[derive(Default, Debug, Serialize, Deserialize)]
-
-struct PowerMeterEntry {
-    start: PowerMeterState,
-    end: Option<PowerMeterState>,
-}
-#[derive(Default, Debug, Serialize, Deserialize)]
-struct PowerMeterState {
-    code_108: f64,
-    code_104: f64,
-}
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Address {
@@ -59,10 +35,7 @@ impl Address {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct PowerMeterNumber;
-#[derive(Debug, Serialize, Deserialize)]
 pub struct Description;
-
 
 #[derive(Debug)]
 pub enum Error<'a> {
@@ -84,8 +57,6 @@ struct Version(u32, u32, u32);
 /// YEAR-MONTH-DAY
 #[derive(Default, Debug, Serialize, Deserialize)]
 struct Date(u32, u32, u32);
-
-
 
 pub fn application(
     std_in: &io::Stdin,

@@ -1,13 +1,11 @@
+use super::{
+    power_meter::{PowerMeterEntry, PowerMeterInfo, Reading},
+    Error, Version,
+};
 use serde::{Deserialize, Serialize};
 use std::default;
 use std::fs::File;
 use std::io::{self};
-use super::{
-    Error,
-    Version,
-    PowerMeterInfo,
-    PowerMeterEntry
-};
 
 pub struct Manifest<'a> {
     path: &'a std::path::Path,
@@ -16,9 +14,12 @@ pub struct Manifest<'a> {
 }
 
 impl<'a> Manifest<'a> {
-    pub fn open(path: &'a str) -> Result<Self, Error> {
+    pub fn open(
+        path: &'a str,
+        options: std::fs::OpenOptions,
+    ) -> Result<Self, Error> {
         let path = std::path::Path::new(path);
-        let file = match std::fs::File::options().write(false).read(true).open(path) {
+        let file = match options.open(path) {
             Ok(file) => file,
             Err(error) => match error {
                 _ => return Err(Error::File { path, error }),
@@ -51,11 +52,13 @@ impl ManifestFile {
         todo!()
     }
 }
-
 #[derive(Default, Debug, Serialize, Deserialize)]
-pub struct Entries {
-    power_meters: Option<Vec<PowerMeterInfo>>,
-    power_readings: Option<Vec<PowerMeterEntry>>
+pub struct Entries(Option<Vec<EntryType>>);
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum EntryType {
+    power_meter(PowerMeterInfo),
+    power_reading(Reading),
 }
 
 #[cfg(test)]
@@ -66,9 +69,12 @@ mod tests {
     fn manifest_tdd() {
         let mut file_name = PathBuf::from("./test_files/manifest.venue");
         let file_name = file_name.to_str();
+        let mut options = std::fs::OpenOptions::new();
+        options.read(true).write(true);
+
         match file_name {
             Some(name) => {
-                Manifest::open(name).unwrap();
+                Manifest::open(name, options).unwrap();
             }
             None => panic!("File path coud not be read."),
         }
