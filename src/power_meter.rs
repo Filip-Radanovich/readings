@@ -3,9 +3,9 @@ use serde::{Deserialize, Serialize};
 use super::{Address, Description};
 
 #[derive(Default, Debug, Serialize, Deserialize)]
-pub struct Reading {
+pub struct PowerReading {
     power_meter_info: Option<PowerMeterInfo>,
-    power_meter_state: PowerMeterEntry,
+    power_meter_state: PowerMeterReading,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -15,7 +15,7 @@ pub enum PowerMeterInfo {
 }
 
 #[derive(Default, Debug, Serialize, Deserialize)]
-pub struct PowerMeterEntry {
+pub struct PowerMeterReading {
     start: PowerMeterState,
     end: Option<PowerMeterState>,
 }

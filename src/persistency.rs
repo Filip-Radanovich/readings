@@ -1,5 +1,7 @@
+use crate::power_meter::PowerMeterReading;
+
 use super::{
-    power_meter::{PowerMeterEntry, PowerMeterInfo, Reading},
+    power_meter::{PowerMeterInfo, PowerReading},
     Error, Version,
 };
 use serde::{Deserialize, Serialize};
@@ -53,12 +55,9 @@ impl ManifestFile {
     }
 }
 #[derive(Default, Debug, Serialize, Deserialize)]
-pub struct Entries(Option<Vec<EntryType>>);
-
-#[derive(Debug, Serialize, Deserialize)]
-pub enum EntryType {
-    power_meter(PowerMeterInfo),
-    power_reading(Reading),
+pub struct Entries{
+    power_meters: Option<PowerMeterInfo>,
+    power_readings: Option<PowerMeterReading>
 }
 
 #[cfg(test)]
